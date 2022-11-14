@@ -1,8 +1,9 @@
-<html xmlns:th="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org" lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8">
   <title>Add new Student to Course</title>
-  <style type="text/css">
+  <style>
     body {
       width: 800px;
       margin: auto;
@@ -32,21 +33,17 @@
 </head>
 <body>
 <header>
-  <h1>Student Enrollment - Select the Student </h1>
+  <h1>Student Enrollment - Select the Student</h1>
 </header>
-
 <section>
   <h2>Select the student to enroll:</h2>
   <a href='/createStudent' type='button'>Create New Student</a> <br/> <br/>
-  <form th:method="POST" th:action="@{/addStudents}">
-    <th:block th:each="student : ${students}">
-      <input type="radio" name="username" th:value="${student.username}"/>
-      <th:block th:text="${student.username}"></th:block>
-    </th:block>
+  <form th:method="POST" th:action="@{/studentEnrollmentSummary}">
+    <input th:each="student : ${students}" type="radio" name="student" th:value="${student.getUsername()}"
+           th:text="${student.getName() + ' ' + student.getSurname()}"/>
+    <br/>
+    <button type="submit">Submit</button>
   </form>
-  <br/>
-  <br/>
-  <a href="/StudentEnrollmentSummary">Submit</a>
 </section>
 <aside>
   <table>
@@ -57,9 +54,7 @@
     </tr>
     <tr>
       <td><b>Course Id</b></td>
-      <td>
-        <th:block th:text="${courseId}"></th:block>
-      </td>
+      <td th:text="${course}"></td>
     </tr>
   </table>
 </aside>

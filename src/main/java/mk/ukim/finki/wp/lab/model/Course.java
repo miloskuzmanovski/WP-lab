@@ -4,55 +4,26 @@ import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 @Data
-public class Course {
+public class Course implements Comparable<Course> {
     private Long courseId;
     private String name;
     private String description;
     private List<Student> students;
+    private Teacher teacher;
 
-    public Long getCourseId() {
-        return courseId;
-    }
-
-    public void setCourseId(Long courseId) {
-        this.courseId = courseId;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String description() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public List<Student> getStudents() {
-        return students;
-    }
-
-    public void setStudents(List<Student> students) {
-        this.students = students;
-    }
-
-    public Course() {
-    }
-    public Course(Long courseId, String name, String description, List<Student> students) {
-        this.courseId = courseId;
+    public Course(String name, String description, Teacher teacher) {
+        this.courseId = new Random().nextLong();
         this.name = name;
         this.description = description;
-        this.students = students;
+        this.students = new ArrayList<>();
+        this.teacher = teacher;
     }
-    public void addStudent(Student student) {
-        this.students.add(student);
+
+    @Override
+    public int compareTo(Course o) {
+        return name.compareTo(o.name);
     }
 }

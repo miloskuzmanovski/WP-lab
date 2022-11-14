@@ -1,6 +1,5 @@
 package mk.ukim.finki.wp.lab.web;
 
-import mk.ukim.finki.wp.lab.service.CourseService;
 import mk.ukim.finki.wp.lab.service.StudentService;
 import org.thymeleaf.context.WebContext;
 import org.thymeleaf.spring5.SpringTemplateEngine;
@@ -12,22 +11,20 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
-@WebServlet(name = "create_student_servlet", urlPatterns = "/createStudent")
+@WebServlet(name = "createStudent", urlPatterns = "/createStudent")
 public class CreateStudentServlet extends HttpServlet {
-    private final StudentService studentService;
-    private final CourseService courseService;
     private final SpringTemplateEngine springTemplateEngine;
+    private final StudentService studentService;
 
-    public CreateStudentServlet(StudentService studentService, CourseService courseService, SpringTemplateEngine springTemplateEngine) {
-        this.studentService = studentService;
-        this.courseService = courseService;
+    public CreateStudentServlet(SpringTemplateEngine springTemplateEngine, StudentService studentService) {
         this.springTemplateEngine = springTemplateEngine;
+        this.studentService = studentService;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         WebContext webContext = new WebContext(req, resp, req.getServletContext());
-        this.springTemplateEngine.process("createStudent.html", webContext, resp.getWriter());
+        springTemplateEngine.process("createStudent.html", webContext, resp.getWriter());
     }
 
     @Override
@@ -36,8 +33,8 @@ public class CreateStudentServlet extends HttpServlet {
         String password = req.getParameter("password");
         String name = req.getParameter("name");
         String surname = req.getParameter("surname");
-        studentService.save(username, password, name, surname);
 
-        resp.sendRedirect("/AddStudent");
+        studentService.save(username, password, name, surname);
+        resp.sendRedirect("/addStudent");
     }
 }

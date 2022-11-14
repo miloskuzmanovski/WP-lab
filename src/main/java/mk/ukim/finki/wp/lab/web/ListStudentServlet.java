@@ -1,6 +1,7 @@
 package mk.ukim.finki.wp.lab.web;
 
 import mk.ukim.finki.wp.lab.model.Course;
+import mk.ukim.finki.wp.lab.model.Student;
 import mk.ukim.finki.wp.lab.service.CourseService;
 import mk.ukim.finki.wp.lab.service.StudentService;
 import org.thymeleaf.context.WebContext;
@@ -11,42 +12,49 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.WebConnection;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
-@WebServlet(name = "student_list_servlet", urlPatterns = "/AddStudent")
+@WebServlet(name = "listStudents", urlPatterns = "/addStudent")
 public class ListStudentServlet extends HttpServlet {
-
     private final SpringTemplateEngine springTemplateEngine;
-    private final StudentService studentService;
     private final CourseService courseService;
+    private final StudentService studentService;
 
-    public ListStudentServlet(SpringTemplateEngine springTemplateEngine, StudentService studentService, CourseService courseService) {
+    public ListStudentServlet(SpringTemplateEngine springTemplateEngine, CourseService courseService, StudentService studentService) {
         this.springTemplateEngine = springTemplateEngine;
-        this.studentService = studentService;
         this.courseService = courseService;
+        this.studentService = studentService;
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        WebContext context = new WebContext(req, resp, req.getServletContext());
-        Long courseId = null;
-        try {
-            courseId = Long.parseLong(req.getSession().getAttribute("courseId").toString());
-        } catch (Exception e) {
-            resp.sendRedirect("/listCourses");
-            return;
-        }
-        context.setVariable("courseId", courseId);
-        context.setVariable("students", studentService.listAll());
-        this.springTemplateEngine.process("listStudents.html", context, resp.getWriter());
+        WebContext webContext = new WebContext(req, resp, req.getServletContext());
+        String parameter = req.getSession().getAttribute("course").toString();
+        Course course = courseService.getCourseById(Long.parseLong(parameter));
+        List<Student> students = new ArrayList<>(studentService.listAll());
+        students.removeAll(course.getStudents());
+        webContext.setVariable("students", students);
+        this.springTemplateEngine.process("listStudents.html", webContext, resp.getWriter());
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String username = req.getParameter("username");
-        Long courseId = Long.parseLong(req.getSession().getAttribute("courseId").toString());
-        courseService.addStudentInCourse(username, courseId);
-        resp.sendRedirect("/StudentEnrollmentSummary");
+        WebContext webContext = new WebContext(req, resp, req.getServletContext());
+        String parameter = req.getParameter("course");
+        req.getSession().setAttribute("course", parameter);
+
+        if (parameter == null) {
+            resp.sendRedirect("/courses");
+            return;
+        }
+
+        Course course = courseService.getCourseById(Long.parseLong(parameter));
+        List<Student> students = new ArrayList<>(studentService.listAll());
+        students.removeAll(courseService.listStudentsByCourse(course.getCourseId()));
+        webContext.setVariable("students", students);
+        webContext.setVariable("course", course.getCourseId());
+        this.springTemplateEngine.process("listStudents.html", webContext, resp.getWriter());
     }
 }
