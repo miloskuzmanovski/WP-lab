@@ -42,6 +42,7 @@
     <input th:each="student : ${students}" type="radio" name="student" th:value="${student.getUsername()}"
            th:text="${student.getName() + ' ' + student.getSurname()}"/>
     <br/>
+
     <button type="submit">Submit</button>
   </form>
 </section>

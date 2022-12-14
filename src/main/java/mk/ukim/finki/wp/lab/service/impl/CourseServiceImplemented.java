@@ -2,21 +2,23 @@ package mk.ukim.finki.wp.lab.service.impl;
 
 import mk.ukim.finki.wp.lab.model.Course;
 import mk.ukim.finki.wp.lab.model.Student;
-import mk.ukim.finki.wp.lab.repository.CourseRepository;
+import mk.ukim.finki.wp.lab.model.enums.Type;
+import mk.ukim.finki.wp.lab.repository.jpa.JpaCourseRepository;
 import mk.ukim.finki.wp.lab.service.CourseService;
 import mk.ukim.finki.wp.lab.service.StudentService;
 import mk.ukim.finki.wp.lab.service.TeacherService;
 import org.springframework.stereotype.Service;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
 public class CourseServiceImplemented implements CourseService {
-    private final CourseRepository courseRepository;
+    private final JpaCourseRepository courseRepository;
     private final StudentService studentService;
     private final TeacherService teacherService;
 
-    public CourseServiceImplemented(CourseRepository courseRepository, StudentService studentService, TeacherService teacherService) {
+    public CourseServiceImplemented(JpaCourseRepository courseRepository, StudentService studentService, TeacherService teacherService) {
         this.courseRepository = courseRepository;
         this.studentService = studentService;
         this.teacherService = teacherService;
@@ -24,7 +26,13 @@ public class CourseServiceImplemented implements CourseService {
 
     @Override
     public List<Student> listStudentsByCourse(Long courseId) {
-        return courseRepository.findById(courseId).getStudents();
+        Course course = courseRepository.findById(courseId).orElse(null);
+
+        if (course == null) {
+            return Collections.emptyList();
+        }
+
+        return course.getStudents();
     }
 
     @Override
@@ -39,24 +47,30 @@ public class CourseServiceImplemented implements CourseService {
             return null;
         }
 
-        Course course = courseRepository.findById(courseId);
-        courseRepository.addStudentToCourse(student, course);
+        Course course = courseRepository.findById(courseId).orElse(null);
+
+        if (course == null) {
+            return null;
+        }
+
+        course.getStudents().add(student);
+        courseRepository.save(course);
         return course;
     }
 
     @Override
     public List<Course> getCourses() {
-        return courseRepository.findAllCourses();
+        return courseRepository.findAll();
     }
 
     @Override
     public Course getCourseById(Long courseId) {
-        return courseRepository.findById(courseId);
+        return courseRepository.findById(courseId).orElse(null);
     }
 
     @Override
-    public Course addCourse(String name, String description, Long teacherId) {
-        Course course = new Course(name, description, teacherService.getById(teacherId));
+    public Course addCourse(String name, String description, Long teacherId, String type) {
+        Course course = new Course(name, description, teacherService.getById(teacherId), Type.valueOf(type));
 
         if (getCourses()
                 .stream()
@@ -66,19 +80,51 @@ public class CourseServiceImplemented implements CourseService {
             return null;
         }
 
-        return courseRepository.addCourse(course);
+        return courseRepository.save(course);
     }
 
     @Override
-    public boolean deleteCourse(Long id) {
-        return courseRepository.deleteCourse(id);
+    public void deleteCourse(Long id) {
+        courseRepository.deleteById(id);
     }
 
     @Override
-    public void editCourse(Long id, String name, String description, Long teacher) {
-        Course course = courseRepository.findById(id);
+    public void editCourse(Long id, String name, String description, Long teacher, String type) {
+        Course course = courseRepository.findById(id).orElse(null);
+
+        if (course == null) {
+            return;
+        }
+
         course.setName(name);
         course.setDescription(description);
         course.setTeacher(teacherService.getById(teacher));
+        course.setType(Type.valueOf(type));
+        courseRepository.save(course);
+    }
+
+    @Override
+    public List<Course> search(String term) {
+        return courseRepository.findByName(term);
+    }
+
+    @Override
+    public Course findByCourseId(Long course) {
+        return courseRepository.findById(course).orElse(null);
+    }
+
+    @Override
+    public void save(String name, String description, Long teacher, Long course, String type) {
+        Course c = courseRepository.findById(course).orElse(null);
+
+        if (c == null) {
+            c = new Course();
+        }
+
+        c.setName(name);
+        c.setDescription(description);
+        c.setTeacher(teacherService.getById(teacher));
+        c.setType(Type.valueOf(type));
+        courseRepository.save(c);
     }
 }
