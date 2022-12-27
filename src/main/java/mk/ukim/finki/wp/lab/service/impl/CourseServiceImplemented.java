@@ -89,23 +89,23 @@ public class CourseServiceImplemented implements CourseService {
     }
 
     @Override
-    public void editCourse(Long id, String name, String description, Long teacher, String type) {
+    public Course editCourse(Long id, String name, String description, Long teacher, String type) {
         Course course = courseRepository.findById(id).orElse(null);
 
         if (course == null) {
-            return;
+            return null;
         }
 
         course.setName(name);
         course.setDescription(description);
         course.setTeacher(teacherService.getById(teacher));
         course.setType(Type.valueOf(type));
-        courseRepository.save(course);
+        return courseRepository.save(course);
     }
 
     @Override
     public List<Course> search(String term) {
-        return courseRepository.findByName(term);
+        return courseRepository.findByNameContains(term);
     }
 
     @Override

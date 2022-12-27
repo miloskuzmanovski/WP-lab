@@ -9,4 +9,6 @@ public interface TeacherService {
     Teacher getById(Long id);
 
     List<Teacher> search(String term);
+    Teacher save(String name, String surname);
+
 }
